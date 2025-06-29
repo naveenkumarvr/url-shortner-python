@@ -4,10 +4,11 @@ from sqlalchemy import inspect  # To inpsect and read Content
 from datetime import datetime   # For date time 
 from flask_migrate import Migrate   # For database schema migration
 from flask import request, jsonify
+from flask import redirect # For URL Redirection
 import hashlib, base62
 import datetime
 import random
-
+import redis
 
 app = Flask(__name__) # Here we are initializing Flask app and assign to a variable called app
 
@@ -20,7 +21,6 @@ db = SQLAlchemy(app)
 
 # Heee we are initializing DB Migration using sql app and db details. 
 migrate = Migrate(app, db)
-
 
 
 
@@ -54,7 +54,8 @@ def create_short_url():
         return jsonify({"error":"Original Url required"}), 400
     
     base_url = f"{original_url}{datetime.datetime.now()}"
-    encoded_url = base62.encode(hashlib.sha256(base_url.encode()).digest())
+    hash_int  = int.from_bytes((hashlib.sha256(base_url.encode()).digest()), byteorder='big')
+    encoded_url = base62.encode(hash_int)
     print(encoded_url)
     shorterned_url = ''.join(random.choices(encoded_url, k=6))
     while Link.query.filter_by(short_url=shorterned_url).first() is not None:
@@ -70,6 +71,33 @@ def create_short_url():
         "message": "Short URL created",
         "short_url": short_url
     }), 201
+
+
+#Redis Variable Declaration
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+
+@app.route('/<short_code>', methods=['GET'])
+def redirect_to_original(short_code):
+    cache_key = f"short:{short_code}"
+
+    #Check Redis
+    cached_url = redis_client.get(cache_key)
+    if cache_key:
+        print(f"Cache hit for {short_code}")
+        app.logger.debug(f"Cache lookup for {short_code}: {cached_url}")
+        return redirect(cached_url, code=302)
+    
+    # If not cahced , check db
+    link = Link.query.filter_by(short_url=short_code).first()
+    if link and link.original_url:
+        # Cache it for next time
+        redis_client.setex(cache_key, 17200, link.orignal_url)
+        app.logger.debug(f"DB lookup for {short_code}: {link}")
+        # Updating visit count
+        link.visit += 1
+        db.session.commit()
+        return redirect(link.original_url, code=302)
+    return jsonify({"error": "Short url not found"}),404
 
 
 if __name__ == '__main__':
