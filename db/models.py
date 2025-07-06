@@ -3,8 +3,9 @@ from db import db  # Import the db instance from __init__.py
 
 # Defining the Links table
 class Links(db.Model):
-    __tablename__ = 'url_shortner'
+    __tablename__ = 'url_shortner'  #Defining table name
 
+    # Adding schema to the table
     id = db.Column(db.Integer, primary_key=True)
     original_url = db.Column(db.String(512), nullable=False)
     short_url = db.Column(db.String(18), unique=True, nullable=False)

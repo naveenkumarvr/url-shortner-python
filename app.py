@@ -1,6 +1,7 @@
 from flask import Flask  # Importing Flask Module
 from db import db, Links
-from utils.utils import * 
+from utils.utils import *
+from utils.redis import *
 from flask_migrate import Migrate # For database migration
 from flask import request, redirect, jsonify
 import random, string
@@ -32,11 +33,19 @@ def create_short_url():
 
 @app.route('/<short_code>', methods=['GET'])
 def redirect_to_original_url(short_code):
-    get_url_data = check_short_key(db.session,short_code)
-    if not get_url_data:
-        return jsonify({"error": "Not Found"}), 404
-    app.logger.debug(f"Lookup for {short_code}: {get_url_data.original_url}")
-    return redirect(get_url_data.original_url, 302)
+    #Check Redis cache
+    check_cache = check_redis_cache(short_code)
+    if check_cache:
+        return redirect(check_cache, 302)
+    else:
+        get_url_data = check_short_key(db.session,short_code)
+        if not get_url_data:
+            return jsonify({"error": "Not Found"}), 404
+        app.logger.debug(f"Reading from database {short_code}: {get_url_data.original_url}")
+        redis_key = f"short_url:{short_code}"
+        update_cache(redis_key,get_url_data.original_url)
+        update_db_visit_count(db.session, short_code)
+        return redirect(get_url_data.original_url, 302)
 
 
 if __name__ == "__main__":

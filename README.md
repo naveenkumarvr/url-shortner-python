@@ -29,6 +29,6 @@ flask db upgrade
 - Create a function get a specific full url as ouptut by passing short url as input
 # Input
 
-curl -X POST http://localhost:5000/short -H "Content-Type: application/json" -d '{"original_url": "https://example.com"}'
+curl -X POST http://localhost:5000/short -H "Content-Type: application/json" -d '{"original_url": "https://google.com"}'
 
 curl -X GET http://localhost:5000/LJ6zAP -H "Content-Type: application/json" 
