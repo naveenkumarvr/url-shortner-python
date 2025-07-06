@@ -1,6 +1,14 @@
-# TODO
+# URL Shortner
+# DB
+- We are using MYSQL Db. For local setup make sure you have docker up and running and run the following command to spinup Mysql db container on your docker
+```bash
+docker run --name mysql -d -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mysql
+```
+- The username and password for the db is: 
+    - `username`: `root` and `password`: `password`
 
-# DB Migration
+
+## DB Migration
 - For Flask Migration to happen we need following modules to be installed. All these are covered in requireemnt.txt file. when you install from requirement.txt all below package will get installed automatically. Just covering here for knowledge purpose
     - flask_migrate - used for migration
     - pymysql - PythonMysql diaclet
@@ -20,14 +28,6 @@ flask db upgrade
 ```
 
 
-## DB Connections
-- Create Model for DB
-- Establish Connection with db
-- Migrate the model to db
-- Verify the same
-- Create a function to add entry to db
-- Create a function get a specific full url as ouptut by passing short url as input
-# Input
 
 curl -X POST http://localhost:5000/short -H "Content-Type: application/json" -d '{"original_url": "https://google.com"}'
 
