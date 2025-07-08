@@ -5,11 +5,16 @@ from utils.redis import *
 from flask_migrate import Migrate # For database migration
 from flask import request, redirect, jsonify
 import random, string
+import os
+
+
+mysql_host = os.getenv("MYSQL_HOST", "localhost")
+
 
 #Initializing the flask. When a Python file is imported as a module, __name__ is set to the module's name (i.e., the filename without .py
 app = Flask(__name__) 
 ## SQLALCHEMY DB Config
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:password@localhost:3306/url_shortner" #setting connection url for the DB.
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:password@{mysql_host}:3306/url_shortner" #setting connection url for the DB.
 # Connects Flask App to the DB with the above configuration
 db.init_app(app) 
 # Here we are initializing DB Migration
@@ -49,4 +54,4 @@ def redirect_to_original_url(short_code):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host= "0.0.0.0", port=5000)
