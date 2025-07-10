@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: url-shortner
+  name: url-shortner
+  namespace: url-shortner
+spec:
+  type: NodePort
+  ports:
+  - name: url-app
+    port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: url-shortner
+status:
+  loadBalancer: {}

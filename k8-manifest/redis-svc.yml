@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: redis
+  name: redis
+  namespace: url-shortner
+spec:
+  ports:
+  - port: 6379
+    protocol: TCP
+    targetPort: 6379
+  selector:
+    app: redis # This is the app selector should be same as your deployment Pod specification
+status:
+  loadBalancer: {}

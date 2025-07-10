@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: url-shortner
+  name: url-shortner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: url-shortner # This is how the deployment knows which pod it is contorlling. And in Template you can see it adds the variable
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: url-shortner # This label is added to the pod by deployment to identify it by selector
+    spec:
+      containers:
+      - image: naveenvr0792/url-shortner:v1.0.0
+        name: url-shortner
+        ports:
+          - containerPort: 5000
+        env:
+          - name: REDIS_HOST
+            value: redis
+          - name: MYSQL_HOST
+            value: mysql
+        resources: {}
+status: {}
