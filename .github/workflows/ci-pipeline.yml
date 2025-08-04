@@ -1,0 +1,21 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - urlshrt_with_redis
+  
+
+jobs:
+  ci-pipeline:
+    name: CI Pipline
+    runs-on: [self-hosted, Linux, X64, nk-wsl]
+    steps:
+    
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Checking Echo
+      shell: bash
+      run: |
+        echo "Hello Github Runner"
