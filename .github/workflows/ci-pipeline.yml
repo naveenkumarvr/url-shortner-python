@@ -28,7 +28,7 @@ jobs:
         source /tmp/gh-env/bin/activate
         pytest --cov=app --cov-report=xml:app/coverage.xml
     
-    - name: Run Sonarqube Analysis
+    - name: Sonarqube Analysis
       run: |
         docker run \
         --rm \
