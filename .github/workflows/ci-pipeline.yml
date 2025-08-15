@@ -56,3 +56,9 @@ jobs:
 
         # Upload SBOM Report to DTRACK
         curl -X POST "http://localhost:8090/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-cyclonedx.json"
+    
+    - name: Vulnerability scan with Grype
+      env:
+        GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/6/vulnerability.db"
+      run: |
+        grype sbom:sbom-cyclonedx.json -o table --fail-on High
