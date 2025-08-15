@@ -1,9 +1,10 @@
 name: CI Pipeline
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - urlshrt_with_redis
+      - uat
   
 
 jobs:
@@ -15,7 +16,29 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Checking Echo
+    - name: Install Dependencies
       shell: bash
+      run: pip install -r app/requirements.txt 
+
+    - name: CodeCoverage
+      shell: bash
+      run: pytest --cov=app --cov-report=xml:app/coverage.xml
+    
+    - name: Run Sonarqube Analysis
       run: |
-        echo "Hello Github Runner"
+        docker run \
+        --rm \
+        -e SONAR_SCANNER_OPTS="\
+          -Dsonar.projectKey=url-shortner-python \
+          -Dsonar.projectName=url-shortner-python \
+          -Dsonar.projectVersion=1.0 \
+          -Dsonar.sources=/usr/src/ \
+          -Dsonar.host.url=http://host.docker.internal:9000 \
+          -Dsonar.sourceEncoding=UTF-8 \
+          -Dsonar.python.version=3.11 \
+          -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
+          -Dsonar.exclusions=**/migrations/**,k8-manifest/**,vnv-urlshrt/** \
+          -Dsonar.coverage.exclusions=**/migrations/**,**/test_*.py \
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}" \
+        -v "./app:/usr/src" \
+        sonarsource/sonar-scanner-cli
