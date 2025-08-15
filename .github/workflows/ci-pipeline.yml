@@ -59,6 +59,6 @@ jobs:
     
     - name: Vulnerability scan with Grype
       env:
-        GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/6/vulnerability.db"
+        GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
       run: |
         grype sbom:sbom-cyclonedx.json -o table --fail-on High
