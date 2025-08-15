@@ -61,4 +61,4 @@ jobs:
       env:
         GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
       run: |
-        grype sbom:sbom-cyclonedx.json -o table --fail-on High
+        grype sbom:sbom-cyclonedx.json -o table --fail-on High -v
