@@ -18,7 +18,7 @@ jobs:
 
     - name: Install Dependencies
       shell: bash
-      run: python3 pip install -r app/requirements.txt 
+      run: python3 -m pip install -r app/requirements.txt 
 
     - name: CodeCoverage
       shell: bash
