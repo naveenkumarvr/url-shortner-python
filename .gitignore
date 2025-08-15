@@ -1,3 +1,6 @@
 __pycache__/*
 **/__pycache__/**
 vnv-urlshrt/*
+coverage.xml
+.coverage
+**/.sonar/**
