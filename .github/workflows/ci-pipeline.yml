@@ -46,3 +46,13 @@ jobs:
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}" \
         -v "./app:/usr/src" \
         sonarsource/sonar-scanner-cli
+    
+    - name: SBOM Report Generation
+      run: |
+        syft scan dir:./app -o cyclonedx-json > sbom-cyclonedx.json
+
+        #Get Project ID of D-Track
+        PROJECT_ID=$(curl -s -X GET "http://localhost:8090/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
+
+        # Upload SBOM Report to DTRACK
+        curl -X POST "http://localhost:8090/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-cyclonedx.json"
