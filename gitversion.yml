@@ -1,4 +1,4 @@
-mode: ContinuousDelivery   # Default mode, overridden per branch
+mode: Mainline   # Default mode, overridden per branch
 next-version: 1.0.0        # Starting version when no tag exists
 tag-prefix: 'v'            # Prefix versions with 'v'
 
