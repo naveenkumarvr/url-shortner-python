@@ -22,6 +22,21 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+    
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v4.1.0
+      with:
+        versionSpec: '6.3.x'
+    
+    - name: Determine Version
+      id: version_step # step id used as a reference for output values
+      uses: gittools/actions/gitversion/execute@v4.1.0
+      env:
+        DOTNET_HOST_PATH: /usr/bin/dotnet
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+        DOTNET_NOLOGO: true
+        GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
+        GIT_VERSION_DISABLE_REPOOWNER_CHECK: true
 
     - name: Install Dependencies
       shell: bash
@@ -57,52 +72,35 @@ jobs:
     
     - name: SBOM Report Generation
       run: |
-        syft scan dir:./app -o cyclonedx-json > sbom-cyclonedx.json
+        syft scan dir:./app -o cyclonedx-json > sbom-${{ steps.version_step.outputs.FullSemVer }}.json
 
         #Get Project ID of D-Track
         PROJECT_ID=$(curl -s -X GET "http://localhost:8090/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
 
         # Upload SBOM Report to DTRACK
-        curl -X POST "http://localhost:8090/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-cyclonedx.json"
+        curl -X POST "http://localhost:8090/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ steps.version_step.outputs.FullSemVer }}.json"
     
     - name: Vulnerability scan with Grype
       env:
         GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
       run: |
-        grype sbom:sbom-cyclonedx.json -o json --fail-on High -v > grype-report.json
+        grype sbom:sbom-cyclonedx.json -o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
         
     
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v4.1.0
-      with:
-        versionSpec: '6.3.x'
-    
-    - name: Determine Version
-      id: version_step # step id used as a reference for output values
-      uses: gittools/actions/gitversion/execute@v4.1.0
-      env:
-        DOTNET_HOST_PATH: /usr/bin/dotnet
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-        DOTNET_NOLOGO: true
-        GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
-        GIT_VERSION_DISABLE_REPOOWNER_CHECK: true
-    
-    # - name: Create and Push Artifacts to Nexus
-    #   run: |
-    #     apt-get install zip -y
-    #     zip -r ${{ steps.version_step.outputs.FullSemVer }}.zip app/
+    - name: Create and Push Artifacts to Nexus
+      run: |
+        apt-get install zip -y
+        zip -r ${{ steps.version_step.outputs.FullSemVer }}.zip app/
 
-    #     # Push artifacts to Nexus
-    #     curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
-    #     --upload-file ${{ steps.version_step.outputs.FullSemVer }}.zip \
-    #     http://localhost:8081/repository/url-shortner-artifacts/${{ steps.version_step.outputs.FullSemVer }}.zip
+        # Push artifacts to Nexus
+        curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
+        --upload-file ${{ steps.version_step.outputs.FullSemVer }}.zip \
+        http://localhost:8081/repository/url-shortner-artifacts/${{ steps.version_step.outputs.FullSemVer }}.zip
 
     - name: Build Docker image
       run : |
         cd app
         docker build -t localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }} .
-        # docker login localhost:5000 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
-        # docker push localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }}
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.28.0
@@ -111,20 +109,11 @@ jobs:
         format: 'json'
         output: 'trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json'
     
-    - name: Upload to DefectDojo - Syft SBOM
-      run: |
-        curl -X POST "http://localhost:8080/api/v2/import-scan/" \
-          -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
-          -F 'file=@sbom-cyclonedx.json' \
-          -F 'scan_type=CycloneDX' \
-          -F 'engagement=3' \
-          -F 'active=true' -F 'verified=true'
-    
     - name: Upload to DefectDojo - Grype
       run: |
         curl -X POST "http://localhost:8080/api/v2/import-scan/" \
           -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
-          -F 'file=@grype-report.json' \
+          -F 'file=@grype-report-${{ steps.version_step.outputs.FullSemVer }}.json' \
           -F 'scan_type=Anchore Grype' \
           -F 'engagement=3' \
           -F 'active=true' -F 'verified=true'
@@ -137,4 +126,9 @@ jobs:
           -F 'scan_type=Trivy Scan' \
           -F 'engagement=3' \
           -F 'active=true' -F 'verified=true'
+
+    - name: Push Docker image to Nexus
+      run: |
+        docker login localhost:5000 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
+        docker push localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }}
 
