@@ -72,7 +72,7 @@ jobs:
     
     - name: Trusted repo
       run: | 
-        git config --global --add safe.directory '*'
+        git config --global --add safe.directory '/mnt/d/actions-runner/_work/url-shortner-python/url-shortner-python'
         whoami
     
     - name: Install GitVersion

@@ -10,9 +10,9 @@ branches:
     is-mainline: true
     tag: ''                # No pre-release tag, stable only
   
-    uat:
-      regex: ^uat$
-      mode: ContinuousDeployment
-      increment: patch
-      tag: alpha             # Pre-release tag 'alpha'
-      track-merge-target: true
+  uat:
+    regex: ^uat$
+    mode: ContinuousDeployment
+    increment: patch
+    tag: alpha             # Pre-release tag 'alpha'
+    track-merge-target: true
