@@ -10,10 +10,10 @@ branches:
     label: ''
   uat:
     mode: ContinuousDeployment
-    regex: (origin/)?uat$
+    regex: uat
     increment: Patch
     label: alpha
-    track-merge-target: true
+
 
 # next-version: 1.0.0        # Starting version when no tag exists
 # tag-prefix: 'v'            # Prefix versions with 'v'
