@@ -9,6 +9,7 @@ branches:
     is-main-branch: true
     label: ''
   uat:
+    mode: ContinuousDeployment
     regex: ^uat$
     increment: Patch
     label: alpha
