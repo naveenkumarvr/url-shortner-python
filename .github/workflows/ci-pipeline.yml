@@ -103,19 +103,17 @@ jobs:
         # docker login localhost:5000 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
         # docker push localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }}
     
-    - name: Trivy scan (image)
-      uses: aquasecurity/trivy-action@0.20.0
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.28.0
       with:
         image-ref: 'localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }}'
         format: 'json'
-        severity: 'HIGH,CRITICAL'
-        scan-type: 'image'
-        output: trivy-report.json
+        output: 'trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json'
     
     - name: Upload Vulnerability Scan Results
       uses: actions/upload-artifact@v4
       with:
         name: trivy-report
-        path: trivy-report-${{ steps.version_step.outputs.FullSemVer }}.json
+        path: trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json
         retention-days: 1
 
