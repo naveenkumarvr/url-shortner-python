@@ -1,0 +1,18 @@
+mode: ContinuousDelivery   # Default mode, overridden per branch
+next-version: 1.0.0        # Starting version when no tag exists
+tag-prefix: 'v'            # Prefix versions with 'v'
+
+branches:
+  main:
+    regex: ^main$
+    mode: Mainline
+    increment: patch
+    is-mainline: true
+    tag: ''                # No pre-release tag, stable only
+  
+    uat:
+      regex: ^uat$
+      mode: ContinuousDeployment
+      increment: patch
+      tag: alpha             # Pre-release tag 'alpha'
+      track-merge-target: true
