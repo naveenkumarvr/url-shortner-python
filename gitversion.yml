@@ -8,7 +8,7 @@ branches:
   main:
     regex: ^main$
     increment: Patch
-    is-mainline: true
+    is-main-branch: true
     tag: ''
   uat:
     regex: ^uat$
