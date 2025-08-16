@@ -49,21 +49,6 @@ CREATE DATABASE url_shortner;
 
 ---
 
-### 3. Clone the Repo and Migrate Schema
-
-```bash
-git clone <your-repo-url>
-cd url-shortner-python/app
-pip install -r requirements.txt
-
-# Initialize and migrate the database
-flask db init
-flask db migrate -m "Initial commit"
-flask db upgrade
-```
-
----
-
 ### 4. Deploy Redis
 
 ```bash
@@ -91,6 +76,13 @@ docker run \
   --name urls \
   --network url_shortner \
   urls:v1
+
+# Migrate Schema
+docker exec -it urls /bin/bash
+# Initialize and migrate the database
+flask db init
+flask db migrate -m "Initial commit"
+flask db upgrade
 ```
 
 ---

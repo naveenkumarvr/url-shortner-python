@@ -26,6 +26,7 @@ jobs:
     - name: Install Dependencies
       shell: bash
       run: |
+        git config --global --add safe.directory '/mnt/d/actions-runner/_work/url-shortner-python/url-shortner-python'
         source /mnt/d/actions-runner/gh-env/bin/activate
         python3 -m pip install --index-url http://localhost:8081/repository/pypi-group/simple -r app/requirements.txt 
 
@@ -70,11 +71,6 @@ jobs:
       run: |
         grype sbom:sbom-cyclonedx.json -o table --fail-on High -v
     
-    - name: Trusted repo
-      run: | 
-        git config --global --add safe.directory '/mnt/d/actions-runner/_work/url-shortner-python/url-shortner-python'
-        whoami
-    
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.1.0
       with:
@@ -90,12 +86,6 @@ jobs:
         GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
         GIT_VERSION_DISABLE_REPOOWNER_CHECK: true
     
-    - name: Print GitVersion outputs
-      run: |
-        echo "FullSemVer: ${{ steps.version_step.outputs.FullSemVer }}"
-        echo "NuGetVersion: ${{ steps.version_step.outputs.NuGetVersion }}"
-        echo "InformationalVersion: ${{ steps.version_step.outputs.InformationalVersion }}"
-    
     - name: Create and Push Artifacts to Nexus
       run: |
         apt-get install zip -y
@@ -105,3 +95,11 @@ jobs:
         curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
         --upload-file ${{ steps.version_step.outputs.FullSemVer }}.zip \
         http://localhost:8081/repository/url-shortner-artifacts/${{ steps.version_step.outputs.FullSemVer }}.zip
+
+    - name: Build Docker image
+      run : |
+        cd app
+        docker build -t localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }} .
+        docker login localhost:5000 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
+        docker push localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }}
+
