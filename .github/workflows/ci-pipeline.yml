@@ -23,53 +23,54 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # - name: Install Dependencies
-    #   shell: bash
-    #   run: |
-    #     git config --global --add safe.directory '/mnt/d/actions-runner/_work/url-shortner-python/url-shortner-python'
-    #     source /mnt/d/actions-runner/gh-env/bin/activate
-    #     python3 -m pip install --index-url http://localhost:8081/repository/pypi-group/simple -r app/requirements.txt 
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        git config --global --add safe.directory '/mnt/d/actions-runner/_work/url-shortner-python/url-shortner-python'
+        source /mnt/d/actions-runner/gh-env/bin/activate
+        python3 -m pip install --index-url http://localhost:8081/repository/pypi-group/simple -r app/requirements.txt 
 
-    # - name: CodeCoverage
-    #   shell: bash
-    #   run: |
-    #     source /mnt/d/actions-runner/gh-env/bin/activate
-    #     pytest --cov=app --cov-report=xml:app/coverage.xml
+    - name: CodeCoverage
+      shell: bash
+      run: |
+        source /mnt/d/actions-runner/gh-env/bin/activate
+        pytest --cov=app --cov-report=xml:app/coverage.xml
     
-    # - name: Sonarqube Analysis
-    #   run: |
-    #     docker run \
-    #     --rm \
-    #     -e SONAR_SCANNER_OPTS="\
-    #       -Dsonar.projectKey=url-shortner-python \
-    #       -Dsonar.projectName=url-shortner-python \
-    #       -Dsonar.projectVersion=1.0 \
-    #       -Dsonar.sources=/usr/src/ \
-    #       -Dsonar.host.url=http://host.docker.internal:9000 \
-    #       -Dsonar.sourceEncoding=UTF-8 \
-    #       -Dsonar.python.version=3.11 \
-    #       -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
-    #       -Dsonar.exclusions=**/migrations/**,k8-manifest/**,vnv-urlshrt/** \
-    #       -Dsonar.coverage.exclusions=**/migrations/**,**/test_*.py \
-    #       -Dsonar.token=${{ secrets.SONAR_TOKEN }}" \
-    #     -v "./app:/usr/src" \
-    #     sonarsource/sonar-scanner-cli
+    - name: Sonarqube Analysis
+      run: |
+        docker run \
+        --rm \
+        -e SONAR_SCANNER_OPTS="\
+          -Dsonar.projectKey=url-shortner-python \
+          -Dsonar.projectName=url-shortner-python \
+          -Dsonar.projectVersion=1.0 \
+          -Dsonar.sources=/usr/src/ \
+          -Dsonar.host.url=http://host.docker.internal:9000 \
+          -Dsonar.sourceEncoding=UTF-8 \
+          -Dsonar.python.version=3.11 \
+          -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
+          -Dsonar.exclusions=**/migrations/**,k8-manifest/**,vnv-urlshrt/** \
+          -Dsonar.coverage.exclusions=**/migrations/**,**/test_*.py \
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}" \
+        -v "./app:/usr/src" \
+        sonarsource/sonar-scanner-cli
     
-    # - name: SBOM Report Generation
-    #   run: |
-    #     syft scan dir:./app -o cyclonedx-json > sbom-cyclonedx.json
+    - name: SBOM Report Generation
+      run: |
+        syft scan dir:./app -o cyclonedx-json > sbom-cyclonedx.json
 
-    #     #Get Project ID of D-Track
-    #     PROJECT_ID=$(curl -s -X GET "http://localhost:8090/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
+        #Get Project ID of D-Track
+        PROJECT_ID=$(curl -s -X GET "http://localhost:8090/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
 
-    #     # Upload SBOM Report to DTRACK
-    #     curl -X POST "http://localhost:8090/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-cyclonedx.json"
+        # Upload SBOM Report to DTRACK
+        curl -X POST "http://localhost:8090/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-cyclonedx.json"
     
-    # - name: Vulnerability scan with Grype
-    #   env:
-    #     GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
-    #   run: |
-    #     grype sbom:sbom-cyclonedx.json -o table --fail-on High -v
+    - name: Vulnerability scan with Grype
+      env:
+        GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
+      run: |
+        grype sbom:sbom-cyclonedx.json -o json --fail-on High -v > grype-report.json
+        
     
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.1.0
@@ -110,10 +111,30 @@ jobs:
         format: 'json'
         output: 'trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json'
     
-    - name: Upload Vulnerability Scan Results
-      uses: actions/upload-artifact@v4
-      with:
-        name: trivy-report
-        path: trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json
-        retention-days: 1
+    - name: Upload to DefectDojo - Syft SBOM
+      run: |
+        curl -X POST "http://localhost:8080/api/v2/import-scan/" \
+          -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
+          -F 'file=@sbom-cyclonedx.json' \
+          -F 'scan_type=CycloneDX' \
+          -F 'engagement=3' \
+          -F 'active=true' -F 'verified=true'
+    
+    - name: Upload to DefectDojo - Grype
+      run: |
+        curl -X POST "http://localhost:8080/api/v2/import-scan/" \
+          -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
+          -F 'file=@grype-report.json' \
+          -F 'scan_type=Anchore Grype' \
+          -F 'engagement=3' \
+          -F 'active=true' -F 'verified=true'
+
+    - name: Upload to DefectDojo - Trivy
+      run: |
+        curl -X POST "http://localhost:8080/api/v2/import-scan/" \
+          -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
+          -F 'file=@trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json' \
+          -F 'scan_type=Trivy Scan' \
+          -F 'engagement=3' \
+          -F 'active=true' -F 'verified=true'
 
