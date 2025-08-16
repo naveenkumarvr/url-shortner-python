@@ -78,6 +78,12 @@ jobs:
     - name: Determine Version
       id: version_step # step id used as a reference for output values
       uses: gittools/actions/gitversion/execute@v4.1.0
+      env:
+        DOTNET_HOST_PATH: /usr/bin/dotnet
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+        DOTNET_NOLOGO: true
+        GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
+        GIT_VERSION_DISABLE_REPOOWNER_CHECK: true
     
     - name: Print GitVersion outputs
       run: |
