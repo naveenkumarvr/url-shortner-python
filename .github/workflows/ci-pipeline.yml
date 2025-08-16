@@ -71,7 +71,9 @@ jobs:
     #     grype sbom:sbom-cyclonedx.json -o table --fail-on High -v
     
     - name: Trusted repo
-      run: git config --global --add safe.directory '*'
+      run: | 
+        git config --global --add safe.directory '*'
+        whoami
     
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.1.0
