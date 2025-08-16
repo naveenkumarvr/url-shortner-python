@@ -1,7 +1,7 @@
-mode: ContinuousDeployment
 tag-prefix: 'v' 
 ignore:
   sha: []
+label: alpha
 branches:
   main:
     regex: ^main$
@@ -9,10 +9,11 @@ branches:
     is-main-branch: true
     label: ''
   uat:
-    mode: ContinuousDeployment
-    regex: uat
+    mode: ContinuousDelivery
+    regex: ^uat$
     increment: Patch
     label: alpha
+    track-merge-target: true
 
 
 # next-version: 1.0.0        # Starting version when no tag exists
