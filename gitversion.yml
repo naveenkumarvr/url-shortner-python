@@ -1,7 +1,8 @@
-mode: Mainline   # Default mode, overridden per branch
 next-version: 1.0.0        # Starting version when no tag exists
 tag-prefix: 'v'            # Prefix versions with 'v'
-
+strategies:
+- ConfiguredNextVersion
+- Mainline
 branches:
   main:
     regex: ^main$
