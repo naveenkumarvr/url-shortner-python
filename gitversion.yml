@@ -9,11 +9,11 @@ branches:
     regex: ^main$
     increment: Patch
     is-main-branch: true
-    tag: ''
+    label: ''
   uat:
     regex: ^uat$
     increment: Patch
-    tag: alpha
+    label: alpha
     track-merge-target: true
 
 # next-version: 1.0.0        # Starting version when no tag exists
