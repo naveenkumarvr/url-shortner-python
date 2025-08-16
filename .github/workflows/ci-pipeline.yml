@@ -26,13 +26,13 @@ jobs:
     - name: Install Dependencies
       shell: bash
       run: |
-        source /tmp/gh-env/bin/activate
+        source /mnt/d/actions-runner/gh-env/bin/activate
         python3 -m pip install --index-url http://localhost:8081/repository/pypi-group/simple -r app/requirements.txt 
 
     - name: CodeCoverage
       shell: bash
       run: |
-        source /tmp/gh-env/bin/activate
+        source /mnt/d/actions-runner/gh-env/bin/activate
         pytest --cov=app --cov-report=xml:app/coverage.xml
     
     - name: Sonarqube Analysis
