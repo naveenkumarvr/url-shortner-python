@@ -84,7 +84,7 @@ jobs:
       env:
         GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
       run: |
-        grype sbom:sbom-cyclonedx.json -o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
+        grype sbom:sbom-${{ steps.version_step.outputs.FullSemVer }}.json-o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
         
     
     - name: Create and Push Artifacts to Nexus
