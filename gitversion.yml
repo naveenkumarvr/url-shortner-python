@@ -13,23 +13,3 @@ branches:
     increment: Patch
     label: alpha
     track-merge-target: true
-
-
-# next-version: 1.0.0        # Starting version when no tag exists
-# tag-prefix: 'v'            # Prefix versions with 'v'
-# strategies:
-# - ConfiguredNextVersion
-# - Mainline
-# branches:
-#   main:
-#     regex: ^main$
-#     increment: patch
-#     is-mainline: true
-#     tag: ''                # No pre-release tag, stable only
-  
-#   uat:
-#     regex: ^uat$
-#     mode: ContinuousDeployment
-#     increment: patch
-#     tag: alpha             # Pre-release tag 'alpha'
-#     track-merge-target: true
