@@ -1,7 +1,6 @@
 tag-prefix: 'v' 
 ignore:
   sha: []
-label: alpha
 branches:
   main:
     regex: ^main$
