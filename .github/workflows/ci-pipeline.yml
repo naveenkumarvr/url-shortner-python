@@ -107,7 +107,7 @@ jobs:
       uses: aquasecurity/trivy-action@0.20.0
       with:
         image-ref: 'localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }}'
-        format: 'table'
+        format: 'json'
         exit-code: '1'
         severity: 'HIGH,CRITICAL'
         scan-type: 'image'
