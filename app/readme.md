@@ -1,34 +1,124 @@
-# URL Shortner
-# DB
-- We are using MYSQL Db. For local setup make sure you have docker up and running and run the following command to spinup Mysql db container on your docker
+# URL Shortener
+
+This is a simple URL shortener app. You provide a full URL, and it returns a shortened version. When you use the short URL, it redirects to the original one. Redis is used for in-memory caching.
+
+## How to Deploy and Test
+
+Follow the steps below to deploy this app.
+
+---
+
+### Prerequisites
+
+- Docker / Docker Desktop installed on your computer
+
+---
+
+### 1. Create a Docker Network
+
+All containers should be part of the same network:
+
 ```bash
-docker run --name mysql -d -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mysql
+docker network create url_shortner
 ```
-- The username and password for the db is: 
-    - `username`: `root` and `password`: `password`
 
+---
 
-## DB Migration
-- For Flask Migration to happen we need following modules to be installed. All these are covered in requireemnt.txt file. when you install from requirement.txt all below package will get installed automatically. Just covering here for knowledge purpose
-    - flask_migrate - used for migration
-    - pymysql - PythonMysql diaclet
-    - cryptograpy - when mysql and mysqlclient or pymysql these uses Sha256 password and needs cryptography package to handle it.
-# DB Migration command
-- Migration initialization. This creates migration directory and other related things
-```python
+### 2. Deploy MySQL Database
+
+```bash
+docker run --name mysql \
+  -d \
+  -e MYSQL_ROOT_PASSWORD=password \
+  -p 3306:3306 \
+  --network url_shortner \
+  mysql
+```
+
+#### Create Database for the App
+
+```bash
+docker exec -it mysql /bin/bash
+# Inside the container, run:
+mysql -u root -p
+# Enter password: password
+
+# Inside MySQL shell:
+CREATE DATABASE url_shortner;
+```
+
+---
+
+### 3. Clone the Repo and Migrate Schema
+
+```bash
+git clone <your-repo-url>
+cd url-shortner-python/app
+pip install -r requirements.txt
+
+# Initialize and migrate the database
 flask db init
-```
-- Create Migration locally. The below command will create new migration file. This file will contains all our DB schema changes and flask sql will also version each file getting generated. 
-```python
 flask db migrate -m "Initial commit"
-```
-- Applying the changes to DB. This below command will apply the migrateion files to DB
-```python
 flask db upgrade
 ```
 
+---
 
+### 4. Deploy Redis
 
-curl -X POST http://localhost:5000/short -H "Content-Type: application/json" -d '{"original_url": "https://google.com"}'
+```bash
+docker run --name redis \
+  -d \
+  -p 6379:6379 \
+  --network url_shortner \
+  redis:latest
+```
 
-curl -X GET http://localhost:5000/LJ6zAP -H "Content-Type: application/json" 
+---
+
+### 5. Build and Run the App
+
+```bash
+# Build Docker image from Dockerfile
+docker build -t urls:v1 .
+
+# Run the container
+docker run \
+  -e MYSQL_HOST=mysql \
+  -e REDIS_HOST=redis \
+  -d \
+  -p 8500:5000 \
+  --name urls \
+  --network url_shortner \
+  urls:v1
+```
+
+---
+
+### 6. Verify Containers
+
+Make sure all containers (`mysql`, `redis`, `urls`) are running and healthy.
+
+---
+
+### 7. Test the App
+
+**Create a short URL:**
+```bash
+curl -X POST http://localhost:8500/short \
+  -H "Content-Type: application/json" \
+  -d '{"original_url": "https://google.com"}'
+```
+
+**Use the short URL to redirect:**
+```bash
+curl -X GET http://localhost:8500/<SHORT_CODE>
+```
+
+---
+
+**Note:**  
+- Replace `<your-repo-url>` with your actual repository URL.
+- Replace `<SHORT_CODE>` with the value you get from the previous command.
+
+---
