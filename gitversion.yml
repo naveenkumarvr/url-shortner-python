@@ -10,7 +10,7 @@ branches:
     label: ''
   uat:
     mode: ContinuousDeployment
-    regex: ^uat$
+    regex: (origin/)?uat$
     increment: Patch
     label: alpha
     track-merge-target: true
