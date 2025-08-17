@@ -23,6 +23,11 @@ jobs:
       with:
         dotnet-version: '8.0.x'
     
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.1.0
       with:
@@ -70,7 +75,18 @@ jobs:
         -v "./app:/usr/src" \
         sonarsource/sonar-scanner-cli
     
-    - name: SBOM Report Generation
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: python
+        queries: security-extended,security-and-quality
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+    
+    - name: SYFT SBOM Report Generation and Grype vulnerability Scan
+      env:
+        GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
       run: |
         syft scan dir:./app -o cyclonedx-json > sbom-${{ steps.version_step.outputs.FullSemVer }}.json
 
@@ -79,13 +95,10 @@ jobs:
 
         # Upload SBOM Report to DTRACK
         curl -X POST "http://localhost:8090/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ steps.version_step.outputs.FullSemVer }}.json"
-    
-    - name: Vulnerability scan with Grype
-      env:
-        GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
-      run: |
-        grype sbom:sbom-${{ steps.version_step.outputs.FullSemVer }}.json -o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
         
+        # Scan SBOM with Grype
+        grype sbom:sbom-${{ steps.version_step.outputs.FullSemVer }}.json -o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
+
     
     - name: Create and Push Artifacts to Nexus
       run: |
