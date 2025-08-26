@@ -109,7 +109,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.28.0
       with:
-        image-ref: 'localhost:5000/url-shotner:${{ steps.version_step.outputs.FullSemVer }}'
+        image-ref: 'localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }}'
         format: 'json'
         output: 'trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json'
     
