@@ -85,7 +85,7 @@ jobs:
         PROJECT_ID=$(curl -s -X GET "http://localhost:8090/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
 
         # Upload SBOM Report to DTRACK
-        curl -X POST "http://localhost:8090/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ steps.version_step.outputs.FullSemVer }}.json"
+        curl -X POST "http://localhost:9020/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ steps.version_step.outputs.FullSemVer }}.json"
         
         # Scan SBOM with Grype
         grype sbom:sbom-${{ steps.version_step.outputs.FullSemVer }}.json -o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
