@@ -18,7 +18,7 @@ spec:
         app: url-shortner # This label is added to the pod by deployment to identify it by selector
     spec:
       containers:
-      - image: naveenvr0792/url-shortner:v1.0.0
+      - image: localhost:9010/url-shotner:0.0.1-alpha.65
         name: url-shortner
         ports:
           - containerPort: 5000

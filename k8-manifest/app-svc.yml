@@ -5,7 +5,6 @@ metadata:
   labels:
     app: url-shortner
   name: url-shortner
-  namespace: url-shortner
 spec:
   type: NodePort
   ports:

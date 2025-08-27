@@ -29,7 +29,7 @@ kubectl -n argocd rollout restart deploy argocd-server
 ## 3. Create Ingress for ArgoCD
 
 ```bash
-kubectl apply -f argocd-ingress.yaml
+kubectl apply -f argocd-ingress.yml
 kubectl -n argocd get ingress
 ```
 
