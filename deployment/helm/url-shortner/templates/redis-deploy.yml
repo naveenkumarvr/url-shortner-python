@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.redis.component }}
+  name: "{{- include "app.fullname" . }}-redis"
+spec:
+  replicas: {{ .Values.redis.deploy.replicas }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ .Values.redis.component }}
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ .Values.redis.component }}
+    spec:
+      containers:
+      - image: {{ .Values.redis.deploy.image }}:{{ .Values.redis.deploy.tag }}
+        name: "{{ include "app.fullname" . }}-redis"
+        resources: {}
+status: {}

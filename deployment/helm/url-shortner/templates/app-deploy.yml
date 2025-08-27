@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels: 
+    {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.app.component }}
+  name: "{{ include "app.fullname" . }}-app"
+spec:
+  replicas: {{ .Values.app.deploy.replicas }}
+  selector:
+    matchLabels: 
+      {{- include "app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ .Values.app.component }}
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels: 
+        {{- include "app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ .Values.app.component }}
+    spec:
+      containers:
+      - image: "{{ .Values.app.deploy.image }}:{{ .Values.app.deploy.tag }}"
+        name: "{{ include "app.fullname" . }}-app"
+        ports:
+          - containerPort: {{ .Values.app.deploy.containerPort }}
+        env:
+          - name: REDIS_HOST
+            value: {{ include "app.fullname" . }}-redissvc
+          - name: MYSQL_HOST
+            value: {{ include "app.fullname" . }}-mysqlsvc
+        resources: {}
+status: {}

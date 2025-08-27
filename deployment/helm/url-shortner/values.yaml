@@ -1,0 +1,37 @@
+app:
+  component: "app"
+  deploy:
+    replicas: 1
+    image: localhost:9010/url-shotner
+    tag: 0.0.1-alpha.65
+    containerPort: 5000
+  svc:
+    type: ClusterIP
+    port: 5000
+    targetPort: 5000
+
+mysql:
+  component: "mysql"
+  deploy:
+    replicas: 1
+    image: mysql
+    tag: 9.4.0
+  svc:
+    type: ClusterIP
+    port: 3306
+    targetPort: 3306
+
+redis:
+  component: "redis"
+  deploy:
+    replicas: 1
+    image: redis
+    tag: 7.2
+  svc:
+    type: ClusterIP
+    port: 6379
+    targetPort: 6379
+
+ingress:
+  host: url-shortner.localtest.me
+  class: nginx

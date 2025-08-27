@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels: 
+    {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.mysql.component }}
+  name: {{ include "app.fullname" . }}-mysqlsvc
+spec:
+  type: {{ .Values.mysql.svc.type }}
+  ports:
+    - port: {{ .Values.mysql.svc.port }}
+      protocol: TCP
+      targetPort: {{ .Values.mysql.svc.targetPort }}
+  selector:
+    {{- include "app.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.mysql.component }}

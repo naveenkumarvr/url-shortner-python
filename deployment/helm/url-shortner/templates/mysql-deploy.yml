@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels: 
+    {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.mysql.component }}
+  name: "{{ include "app.fullname" . }}-mysql"
+spec:
+  replicas: {{ .Values.mysql.replicas }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ .Values.mysql.component }}
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ .Values.mysql.component }}
+    spec:
+      containers:
+      - image: {{ .Values.mysql.deploy.image }}:{{ .Values.mysql.deploy.tag }}
+        name: "{{ include "app.fullname" . }}-mysql"
+        resources: {}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+
+status: {}
