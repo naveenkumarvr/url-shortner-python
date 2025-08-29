@@ -29,9 +29,9 @@ jobs:
       run: |
         VERSION="0.0.${{ github.run_number }}"
         cd deployment/helm/
-        yq -i ".app.deploy.tag = ${{ inputs.APP_RELEASE_VERSION }}" ./url-shortner/values.yaml
-        yq -i ".appVersion = ${{ inputs.APP_RELEASE_VERSION }}" ./url-shortner/Chart.yaml
-        yq -i ".version = env(VERSION)" ./url-shortner/Chart.yaml
+        yq -i ".app.deploy.tag = \"${{ inputs.APP_RELEASE_VERSION }}\"" ./url-shortner/values.yaml
+        yq -i ".appVersion = \"${{ inputs.APP_RELEASE_VERSION }}\"" ./url-shortner/Chart.yaml
+        yq -i ".version = \"${VERSION}\"" ./url-shortner/Chart.yaml
     
     - name: Package and Push Helm Chart
       run: |
