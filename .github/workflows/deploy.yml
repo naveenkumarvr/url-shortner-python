@@ -29,15 +29,15 @@ jobs:
       run: |
         VERSION="0.0.${{ github.run_id }}"
         cd deployment/helm/
-        yq -i ".app.deploy.tag = ${{ input.APP_RELEASE_VERSION }}" ./url-shortner/values.yaml
-        yq -i "appVersion = ${{ input.APP_RELEASE_VERSION }}" ./url-shortner/Chart.yaml
+        yq -i ".app.deploy.tag = ${{ inputs.APP_RELEASE_VERSION }}" ./url-shortner/values.yaml
+        yq -i "appVersion = ${{ inputs.APP_RELEASE_VERSION }}" ./url-shortner/Chart.yaml
         yq -i "version = env(VERSION)" ./url-shortner/Chart.yaml
     
     - name: Package and Push Helm Chart
       run: |
         helm package deployment/helm/url-shortner
         helm repo add nexus-helm http://localhost:9012/repository/helm-hosted/ --username admin --password ${{ secrets.NEXUS_PASSWORD }}
-        helm cm-push ./url-shortner-${{ input.APP_RELEASE_VERSION }}.tgz nexus-helm --username admin --password ${{ secrets.NEXUS_PASSWORD }} --context-path=/repository/helm-hosted/url-shortner/
+        helm cm-push ./url-shortner-${{ inputs.APP_RELEASE_VERSION }}.tgz nexus-helm --username admin --password ${{ secrets.NEXUS_PASSWORD }} --context-path=/repository/helm-hosted/url-shortner/
 
 
         
