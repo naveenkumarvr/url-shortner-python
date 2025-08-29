@@ -35,7 +35,7 @@ jobs:
     - name: Package and Push Helm Chart
       run: |
         helm package deployment/helm/url-shortner
-        helm plugin install https://github.com/chartmuseum/helm-push.git
+        # helm plugin install https://github.com/chartmuseum/helm-push.git
         ls -lar
         helm repo add nexus-helm http://localhost:9012/repository/helm-hosted/ --username admin --password ${{ secrets.NEXUS_PASSWORD }}
         helm cm-push ./url-shortner-${{ inputs.APP_RELEASE_VERSION }}.tgz nexus-helm --username admin --password ${{ secrets.NEXUS_PASSWORD }} --context-path=/repository/helm-hosted/
