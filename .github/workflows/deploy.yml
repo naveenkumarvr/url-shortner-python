@@ -1,0 +1,43 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      APP_RELEASE_VERSION:
+        type: string
+        required: true
+        description: Version to be released
+      ENVIRONMENT:
+        description: "Select environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - uat
+          - prod
+
+jobs:
+  continuous-deployment:
+    runs-on: [self-hosted, Linux, X64, nk-wsl]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 0
+    
+    - name: Update Helm Chart Version
+      run: |
+        VERSION="0.0.${{ GITHUB_RUN_ID }}"
+        cd deployment/helm/
+        yq -i ".app.deploy.tag = ${{ input.APP_RELEASE_VERSION }}" ./url-shortner/values.yaml
+        yq -i "appVersion = ${{ input.APP_RELEASE_VERSION }}" ./url-shortner/Chart.yaml
+        yq -i "version = env(VERSION)" ./url-shortner/Chart.yaml
+    
+    - name: Package and Push Helm Chart
+      run: |
+        helm package deployment/helm/url-shortner
+        helm repo add nexus-helm http://localhost:9012/repository/helm-hosted/ --username admin --password ${{ secrets.NEXUS_PASSWORD }}
+        helm cm-push ./url-shortner-${{ input.APP_RELEASE_VERSION }}.tgz nexus-helm --username admin --password ${{ secrets.NEXUS_PASSWORD }} --context-path=/repository/helm-hosted/url-shortner/
+
+
+        
