@@ -7,9 +7,7 @@ from flask import request, redirect, jsonify
 import random, string
 import os
 
-
 mysql_host = os.getenv("MYSQL_HOST", "localhost")
-
 
 #Initializing the flask. When a Python file is imported as a module, __name__ is set to the module's name (i.e., the filename without .py
 app = Flask(__name__) 
@@ -52,6 +50,25 @@ def redirect_to_original_url(short_code):
         update_db_visit_count(db.session, short_code)
         return redirect(get_url_data.original_url, 302)
 
+
+## TRACING ##
+# Tracing setup (OTLP exporter to OTel Collector)
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry import trace
+
+trace.set_tracer_provider(TracerProvider())
+otlp_exporter = OTLPSpanExporter(
+    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317"),
+    insecure=True
+)
+span_processor = BatchSpanProcessor(otlp_exporter)
+trace.get_tracer_provider().add_span_processor(span_processor)
+FlaskInstrumentor().instrument_app(app)
+
+####
 
 if __name__ == "__main__":
     app.run(debug=True, host= "0.0.0.0", port=5000)
