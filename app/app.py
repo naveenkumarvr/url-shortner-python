@@ -61,7 +61,7 @@ from opentelemetry import trace
 
 trace.set_tracer_provider(TracerProvider())
 otlp_exporter = OTLPSpanExporter(
-    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317"),
+    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector.observability.svc.cluster.local:4318"),
     insecure=True
 )
 span_processor = BatchSpanProcessor(otlp_exporter)

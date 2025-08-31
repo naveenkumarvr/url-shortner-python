@@ -5,6 +5,7 @@ app:
     image: localhost:9010/url-shotner
     tag: 0.0.1-alpha.65
     containerPort: 5000
+    otel_endpoint: "http://otel-collector.observability.svc.cluster.local:4318"
   svc:
     type: ClusterIP
     port: 5000
