@@ -52,23 +52,33 @@ def redirect_to_original_url(short_code):
 
 
 ## TRACING ##
-# Tracing setup (OTLP exporter to OTel Collector)
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+import os
 
-trace.set_tracer_provider(TracerProvider())
-otlp_exporter = OTLPSpanExporter(
-    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector.observability.svc.cluster.local:4318"),
-    insecure=True
+# Step 1: Create TracerProvider
+trace.set_tracer_provider(
+    TracerProvider(
+        resource=Resource.create({"service.name": "url-shortener"})
+    )
 )
+
+# Step 2: Create OTLP HTTP exporter (no 'insecure' argument)
+otlp_exporter = OTLPSpanExporter(
+    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+)
+
+# Step 3: Add BatchSpanProcessor
 span_processor = BatchSpanProcessor(otlp_exporter)
 trace.get_tracer_provider().add_span_processor(span_processor)
+
+# Step 4: Instrument Flask app
 FlaskInstrumentor().instrument_app(app)
 
-####
 
 if __name__ == "__main__":
     app.run(debug=True, host= "0.0.0.0", port=5000)

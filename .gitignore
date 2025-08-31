@@ -4,3 +4,8 @@ vnv-urlshrt/*
 coverage.xml
 .coverage
 **/.sonar/**
+app/migrations/alembic.ini
+app/migrations/env.py
+app/migrations/README
+app/migrations/script.py.mako
+app/migrations/versions/77d8b7952db7_initial_commit.py
