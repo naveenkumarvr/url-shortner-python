@@ -7,7 +7,7 @@ on:
 jobs:
   ci-pipeline:
     name: CI Pipline
-    runs-on: [self-hosted, macOS, X64, nk-mac]
+    runs-on: [self-hosted, macOS, ARM64, nk-mac]
     steps:
     
     - name: Checkout Code
@@ -19,11 +19,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-    
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
     
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.1.0
