@@ -1,0 +1,301 @@
+docker run --name redis -d -p 6379:6379 --network devops redis:latest
+curl -X POST http://localhost:8501/short -H "Content-Type: application/json" -d '{"original_url": "https://google.com"}'
+
+
+curl -X GET http://localhost:8501/G4gZl8 -H "Content-Type: application/json"
+
+
+docker run -e MYSQL_HOST=mysql -e REDIS_HOST=redis -d -p 8501:5000 --name urls1 --network devops localhost:5000/url-shotner:0.0.1-alpha.52
+
+###### DB For Setup ##########
+
+docker volume create db_data
+
+
+docker run -d --name db --network devops -e POSTGRES_USER=devopsuser -e POSTGRES_PASSWORD='Welcome@123' -e POSTGRES_DB=sonarqube -v ./db_data:/var/lib/postgresql/data postgres:17
+
+
+
+
+#######################################################
+
+#### SONARQUBE SERVER ###
+
+docker run -d --name sonarqube --network devops -e SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonarqube -e SONAR_JDBC_USERNAME=devopsuser -e SONAR_JDBC_PASSWORD=Welcome@123 -p 9000:9000 -v ./sonarqube/data:/opt/sonarqube/data -v ./sonarqube/logs:/opt/sonarqube/logs -v ./sonarqube/extensions:/opt/sonarqube/extensions sonarqube:community
+
+SONARQUBE_SERVER_LOGIN
+
+usn: admin
+pss: Welcome@1234
+
+
+
+
+pysonar \
+  --sonar-host-url=http://localhost:9000 \
+  --sonar-token=sqp_92189e3ac4c5ff4bb6b604742c6b264115d3cc19 \
+  --sonar-project-key=url-shortner-python \
+  --sonar-project-base-dir "app/" \
+  --sonar-python-coverage-report-paths=coverage.xml \
+  -Dsonar-exclusions=vnv-urlshrt/**,k8-manifest/**,.github/**
+  
+
+
+
+pysonar   --sonar-host-url=http://localhost:9000   --sonar-token=sqp_92189e3ac4c5ff4bb6b604742c6b264115d3cc19   --sonar-project-key=url-shortner-python   --sonar-project-base-dir "app/"   --sonar-python-coverage-report-paths=coverage.xml   -Dsonar-exclusions=vnv-urlshrt/**,k8-manifest/**,.github/**,app/migrations/** --sonar-coverage-exclusions **/test*.py
+
+
+docker run \
+  --rm \
+  -e SONAR_SCANNER_OPTS="\
+    -Dsonar.projectKey=url-shortner-python \
+    -Dsonar.projectName=url-shortner-python \
+    -Dsonar.projectVersion=1.0 \
+    -Dsonar.sources=/usr/src/ \
+    -Dsonar.host.url=http://host.docker.internal:9000 \
+    -Dsonar.sourceEncoding=UTF-8 \
+    -Dsonar.python.version=3.11 \
+    -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
+    -Dsonar.exclusions=**/migrations/**,k8-manifest/**,vnv-urlshrt/** \
+    -Dsonar.coverage.exclusions=**/migrations/**,**/test_*.py \
+    -Dsonar.token=sqp_92189e3ac4c5ff4bb6b604742c6b264115d3cc19" \
+  -v "./app:/usr/src" \
+  sonarsource/sonar-scanner-cli
+
+#################################################################
+
+########### Vulneribility Scanning ########
+
+### syft ###
+Create SBOM for our code
+
+Download syft
+curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+syft --version
+
+Run Syft on our code:
+#SPDX Output
+syft dir:/path/to/project -o spdx-json > sbom.spdx.json
+# JSON output
+syft dir:/path/to/your/project -o json > sbom.json
+# CycloneDX format
+syft dir:/path/to/your/project -o cyclonedx-json > sbom-cyclonedx.json
+
+
+
+####### grype ############
+Scan SBOM for vulneribilities
+
+Download grype
+curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+grype --version
+
+
+Run:
+
+grype dir:/path/to/your/project --ignore "CVE-2022-12345"
+grype dir:/path/to/your/project --fail-on high
+
+
+grype sbom:sbom.json -o table
+
+ManualDB Update
+grype db update
+
+Check when your DB was last updated
+grype db status
+
+You can store the download Vulneribilities Data in one location and export the path to avoid frequent download
+export GRYPE_DB_CACHE_DIR=<Path where you have the db vulneribilities file>
+
+Run Grype with local Vulneribility file
+grype db update --db-dir ~/.cache/grype/db/ --skip-update-check
+
+
+Option to view the output
+2. Send to a Dashboard Tool (Grafana, Kibana)
+
+Option A: Export Grype output as JSON and push to Elasticsearch → visualize in Kibana.
+
+Option B: Export Grype output as JSON → ship to Prometheus → visualize in Grafana.
+
+For example, with Elasticsearch:
+
+grype dir:/path/to/project -o json | curl -X POST "http://es:9200/grype-scan/_doc" \
+  -H 'Content-Type: application/json' -d @-
+
+
+Then create dashboards in Kibana.
+
+3. Use OWASP Dependency-Track or Other SBOM Dashboards
+
+Since Syft can generate CycloneDX format:
+
+syft dir:/path/to/project -o cyclonedx-json > sbom.cdx.json
+
+
+### Visualize Grype and syft output using dependency track of OSWAP
+
+docker run -d -p 8090:8080 dependencytrack/bundled
+API Key: odt_Q6cFTpYf_vGhExirLvWqhNIju7kjlqJroQOMielXq
+
+
+curl -X POST "http://localhost:8090/api/v1/bom" \
+  -H "X-Api-Key: odt_Q6cFTpYf_vGhExirLvWqhNIju7kjlqJroQOMielXq" \
+  -H "Content-Type: multipart/form-data" \
+  -F "project=716edab8-dea4-4416-ab7a-a4f2af0bb040" \
+  -F "bom=@sbom-sbdx.json"
+
+Get Project ID
+curl -s -X GET "http://localhost:8090/api/v1/project?name=url-shortner-python" \
+  -H "X-Api-Key: odt_Q6cFTpYf_vGhExirLvWqhNIju7kjlqJroQOMielXq" | jq '.[0].uuid'
+
+
+DETECTDOJO
+
+APIKEY
+Token 533e5f0935bbc13e4e2bef6a8e99a71d3cfb7a6b
+
+####################################
+
+######### NEXUS ###########
+
+docker run -d --name nexus -p 9012:8081 -p 9010:9010 -v ./nexus:/nexus-data sonatype/nexus3:latest
+
+
+## Login Issue fix ###
+By default, Nexus Docker repos don’t authenticate with just admin creds. You need to enable the Docker Bearer Token Realm:
+
+Log in to Nexus UI → Administration → Security → Realms
+
+Move Docker Bearer Token Realm from Available to Active.
+
+Save.
+===================================================================
+
+
+Nginx Ingress Controller
+helm upgrade --install ingress-nginx ingress-nginx   --repo https://kubernetes.github.io/ingress-nginx   --namespace ingress-nginx --create-namespace
+
+Show Ingress
+helm show values ingress-nginx --repo https://kubernetes.github.io/ingress-nginx
+
+Testing Ingress
+
+========================
+
+kubectl create secret docker-registry nexus-docker-secret \
+  --docker-server=docker.localtest.me \
+  --docker-username=admin \
+  --docker-password=Welcome@123 \
+  --docker-email=admin@example.com -n test
+
+kubectl create secret docker-registry harbor-creds \
+  --docker-server=harbor.localtest.me \
+  --docker-username=admin \
+  --docker-password='Welcome@123' \
+  --docker-email=you@example.com \
+  -n test
+
+
+kubectl create secret docker-registry nexus-registry-secret \
+  --docker-server=localhost:9010 \
+  --docker-username=admin \
+  --docker-password=Welcome@123 \
+  --docker-email=admin@example.com -n test
+
+###########################################
+
+yq command on pipeline
+yq -i '.app.deploy.tag = env(VERS)' ./url-shortner/values.yaml
+
+
+=======================
+Prometheus Grafana
+helm install metrics-monitoring prometheus-community/kube-prometheus-stack \
+  --namespace metrics-monitoring --create-namespace \
+  -f values.yaml
+
+Prometheus Patch
+kubectl patch ds monitoring-prometheus-node-exporter -n monitoring --type "json" -p '[{"op":"remove","path":"/spec/template/spec/containers/0/volumeMounts/2/mountPropagation"}]'
+
+Get Grafna password
+kubectl get secret --namespace metrics-monitoring metrics-monitoring-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+
+# To Get below metrics kube-statemetrics should be installed on kubesystem
+kube_node_status_capacity_pods
+kube_pod_info
+kube_pod_container_resource_requests
+
+How to install:
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install kube-state-metrics prometheus-community/kube-state-metrics --namespace kube-system
+
+=================
+
+Delete Stuck App
+kubectl get application prometheus-stack -n argocd -o yaml | grep finalizers -A2
+ 1977  kubectl patch application prometheus-stack -n argocd -p '{"metadata":{"finalizers":null}}' --type=merge
+ 1978  kubectl delete application prometheus-stack -n argocd --force --grace-period=0
+
+=============================
+
+Loki for logging
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+kubectl create ns logging
+
+# LOKI Values file
+##########################
+grafana:
+  enabled: false
+
+promtail:
+  enabled: true
+
+loki:
+  auth_enabled: false
+  persistence:
+    enabled: false
+  image:
+    tag: 2.9.3
+
+  # Single-node mode
+  replicaCount: 1
+  singleBinary: true
+
+  # Enable querier for Grafana
+  querier:
+    enabled: true
+    replicas: 1
+
+  # Disable other distributed components
+  distributor:
+    enabled: false
+  ingester:
+    enabled: false
+  queryFrontend:
+    enabled: false
+  ruler:
+    enabled: false
+  compactor:
+    enabled: false
+###########################
+
+#LOKI
+ helm upgrade --install loki grafana/loki-stack   --namespace=logging   --values loki-values.yml
+
+
+
+#Promtrail
+helm upgrade --install promtail grafana/promtail \
+  --namespace=logging \
+  --set daemonset.enabled=true
+
+#Now Configure Grafana Datasoruce with service name of Loki
+Eg URL: http://loki.logging.svc.cluster.local:3100
+
