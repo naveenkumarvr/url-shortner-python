@@ -38,6 +38,8 @@ jobs:
     - name: Install Dependencies
       shell: bash
       run: |
+        SEMVER="${{ steps.version_step.outputs.SemVer }}-${{ steps.version_step.outputs.BuildMetaData }}"
+        echo "SEMVER=$SEMVER" >> $GITHUB_ENV
         git config --global --add safe.directory '/mnt/d/actions-runner/_work/url-shortner-python/url-shortner-python'
         source /Users/naveen/Desktop/naveen-data/docker-practice/gh-env/bin/activate
         python3 -m pip install --index-url http://localhost:8081/repository/pypi-group/simple -r app/requirements.txt 
@@ -71,45 +73,45 @@ jobs:
       env:
         GRYPE_DB_CACHE_DIR: "/Users/naveen/Library/Caches/grype/db/"
       run: |
-        syft scan dir:./app -o cyclonedx-json > sbom-${{ steps.version_step.outputs.FullSemVer }}.json
+        syft scan dir:./app -o cyclonedx-json > sbom-${{ env.SEMVER }}.json
 
         #Get Project ID of D-Track
         PROJECT_ID=$(curl -s -X GET "http://localhost:9011/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
         echo "DD_PROJECTID: $PROJECT_ID"
 
         # Upload SBOM Report to DTRACK
-        curl -X POST "http://localhost:9011/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ steps.version_step.outputs.FullSemVer }}.json"
+        curl -X POST "http://localhost:9011/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ env.SEMVER }}.json"
         
         # Scan SBOM with Grype
-        grype sbom:sbom-${{ steps.version_step.outputs.FullSemVer }}.json -o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
+        grype sbom:sbom-${{ env.SEMVER }}.json -o json --fail-on High -v > grype-report-${{ env.SEMVER }}.json
 
     
     - name: Create and Push Artifacts to Nexus
       run: |
-        zip -r ${{ steps.version_step.outputs.FullSemVer }}.zip app/
+        zip -r ${{ env.SEMVER }}.zip app/
 
         # Push artifacts to Nexus
         curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
-        --upload-file ${{ steps.version_step.outputs.FullSemVer }}.zip \
-        http://localhost:9012/repository/url-shortner-artifacts/${{ steps.version_step.outputs.FullSemVer }}.zip
+        --upload-file ${{ env.SEMVER }}.zip \
+        http://localhost:9012/repository/url-shortner-artifacts/${{ env.SEMVER }}.zip
 
     - name: Build Docker image
       run : |
         cd app
-        docker build -t localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }} .
+        docker build -t localhost:9010/url-shotner:${{ env.SEMVER }} .
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.28.0
       with:
-        image-ref: 'localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }}'
+        image-ref: 'localhost:9010/url-shotner:${{ env.SEMVER }}'
         format: 'json'
-        output: 'trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json'
+        output: 'trivy-results-${{ env.SEMVER }}.json'
     
     # - name: Upload to DefectDojo - Grype
     #   run: |
     #     curl -X POST "http://localhost:8080/api/v2/import-scan/" \
     #       -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
-    #       -F 'file=@grype-report-${{ steps.version_step.outputs.FullSemVer }}.json' \
+    #       -F 'file=@grype-report-${{ env.SEMVER }}.json' \
     #       -F 'scan_type=Anchore Grype' \
     #       -F 'engagement=3' \
     #       -F 'active=true' -F 'verified=true'
@@ -118,7 +120,7 @@ jobs:
     #   run: |
     #     curl -X POST "http://localhost:8080/api/v2/import-scan/" \
     #       -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
-    #       -F 'file=@trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json' \
+    #       -F 'file=@trivy-results-${{ env.SEMVER }}.json' \
     #       -F 'scan_type=Trivy Scan' \
     #       -F 'engagement=3' \
     #       -F 'active=true' -F 'verified=true'
@@ -126,7 +128,7 @@ jobs:
     - name: Push Docker image to Nexus
       run: |
         docker login localhost:9010 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
-        docker push localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }}
+        docker push localhost:9010/url-shotner:${{ env.SEMVER }}
     
         
 
