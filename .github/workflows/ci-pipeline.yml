@@ -97,6 +97,8 @@ jobs:
 
     - name: Build Docker image
       run : |
+        security unlock-keychain -p "${{ secrets.MC_PASS }}" ~/Library/Keychains/login.keychain-db
+
         cd app
         docker build -t localhost:9010/url-shotner:${{ env.SEMVER }} .
     
