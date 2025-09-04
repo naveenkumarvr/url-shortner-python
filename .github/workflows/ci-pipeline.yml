@@ -86,7 +86,6 @@ jobs:
     
     - name: Create and Push Artifacts to Nexus
       run: |
-        apt-get install zip -y
         zip -r ${{ steps.version_step.outputs.FullSemVer }}.zip app/
 
         # Push artifacts to Nexus
