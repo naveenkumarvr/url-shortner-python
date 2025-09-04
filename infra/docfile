@@ -138,7 +138,7 @@ syft dir:/path/to/project -o cyclonedx-json > sbom.cdx.json
 ### Visualize Grype and syft output using dependency track of OSWAP
 
 docker run -d -p 8090:8080 dependencytrack/bundled
-API Key: odt_Q6cFTpYf_vGhExirLvWqhNIju7kjlqJroQOMielXq
+API Key: odt_44kZbkW4_xrABSeGvrybkFqteZSxM0IWEyd4o1V1Q
 
 
 curl -X POST "http://localhost:8090/api/v1/bom" \
@@ -149,7 +149,7 @@ curl -X POST "http://localhost:8090/api/v1/bom" \
 
 Get Project ID
 curl -s -X GET "http://localhost:8090/api/v1/project?name=url-shortner-python" \
-  -H "X-Api-Key: odt_Q6cFTpYf_vGhExirLvWqhNIju7kjlqJroQOMielXq" | jq '.[0].uuid'
+  -H "X-Api-Key: odt_44kZbkW4_xrABSeGvrybkFqteZSxM0IWEyd4o1V1Q" | jq '.[0].uuid'
 
 
 DETECTDOJO

@@ -67,43 +67,44 @@ jobs:
         -v "./app:/usr/src" \
         sonarsource/sonar-scanner-cli
     
-    # - name: SYFT SBOM Report Generation and Grype vulnerability Scan
-    #   env:
-    #     GRYPE_DB_CACHE_DIR: "/home/vrnaveenkr/.cache/grype/db/"
-    #   run: |
-    #     syft scan dir:./app -o cyclonedx-json > sbom-${{ steps.version_step.outputs.FullSemVer }}.json
+    - name: SYFT SBOM Report Generation and Grype vulnerability Scan
+      env:
+        GRYPE_DB_CACHE_DIR: "/Users/naveen/Library/Caches/grype/db/"
+      run: |
+        syft scan dir:./app -o cyclonedx-json > sbom-${{ steps.version_step.outputs.FullSemVer }}.json
 
-    #     #Get Project ID of D-Track
-    #     PROJECT_ID=$(curl -s -X GET "http://localhost:8090/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
+        #Get Project ID of D-Track
+        PROJECT_ID=$(curl -s -X GET "http://localhost:9011/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
+        echo "DD_PROJECTID: $PROJECT_ID"
 
-    #     # Upload SBOM Report to DTRACK
-    #     curl -X POST "http://localhost:9020/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ steps.version_step.outputs.FullSemVer }}.json"
+        # Upload SBOM Report to DTRACK
+        curl -X POST "http://localhost:9011/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ steps.version_step.outputs.FullSemVer }}.json"
         
-    #     # Scan SBOM with Grype
-    #     grype sbom:sbom-${{ steps.version_step.outputs.FullSemVer }}.json -o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
+        # Scan SBOM with Grype
+        grype sbom:sbom-${{ steps.version_step.outputs.FullSemVer }}.json -o json --fail-on High -v > grype-report-${{ steps.version_step.outputs.FullSemVer }}.json
 
     
-    # - name: Create and Push Artifacts to Nexus
-    #   run: |
-    #     apt-get install zip -y
-    #     zip -r ${{ steps.version_step.outputs.FullSemVer }}.zip app/
+    - name: Create and Push Artifacts to Nexus
+      run: |
+        apt-get install zip -y
+        zip -r ${{ steps.version_step.outputs.FullSemVer }}.zip app/
 
-    #     # Push artifacts to Nexus
-    #     curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
-    #     --upload-file ${{ steps.version_step.outputs.FullSemVer }}.zip \
-    #     http://localhost:9012/repository/url-shortner-artifacts/${{ steps.version_step.outputs.FullSemVer }}.zip
+        # Push artifacts to Nexus
+        curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
+        --upload-file ${{ steps.version_step.outputs.FullSemVer }}.zip \
+        http://localhost:9012/repository/url-shortner-artifacts/${{ steps.version_step.outputs.FullSemVer }}.zip
 
-    # - name: Build Docker image
-    #   run : |
-    #     cd app
-    #     docker build -t localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }} .
+    - name: Build Docker image
+      run : |
+        cd app
+        docker build -t localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }} .
     
-    # - name: Run Trivy vulnerability scanner
-    #   uses: aquasecurity/trivy-action@0.28.0
-    #   with:
-    #     image-ref: 'localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }}'
-    #     format: 'json'
-    #     output: 'trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json'
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        image-ref: 'localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }}'
+        format: 'json'
+        output: 'trivy-results-${{ steps.version_step.outputs.FullSemVer }}.json'
     
     # - name: Upload to DefectDojo - Grype
     #   run: |
@@ -123,12 +124,10 @@ jobs:
     #       -F 'engagement=3' \
     #       -F 'active=true' -F 'verified=true'
 
-    # - name: Push Docker image to Nexus
-    #   run: |
-    #     docker login localhost:9010 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
-    #     docker push localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }}
+    - name: Push Docker image to Nexus
+      run: |
+        docker login localhost:9010 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
+        docker push localhost:9010/url-shotner:${{ steps.version_step.outputs.FullSemVer }}
     
-    # - name: Publish Helm chart
-    #   run: |
         
 
