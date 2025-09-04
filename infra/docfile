@@ -140,7 +140,7 @@ syft dir:/path/to/project -o cyclonedx-json > sbom.cdx.json
 ### Visualize Grype and syft output using dependency track of OSWAP
 
 docker run -d -p 8090:8080 dependencytrack/bundled
-API Key: odt_HMseimvo_o3jFDovy3FZtqmZ10gBgPqccpLVJF9OK
+API Key: odt_xHy8LMmb_sKVllnCIenmEapM4fOEaR7PkUMH8lmKj
 
 
 
