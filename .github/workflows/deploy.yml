@@ -18,7 +18,7 @@ on:
 
 jobs:
   create-helm-package-publish:
-    runs-on: [self-hosted, Linux, X64, nk-wsl]
+    runs-on: [self-hosted, macOS, ARM64, nkmac]
     steps:
     - name: Checkout
       uses: actions/checkout@v4.1.0
