@@ -6,6 +6,11 @@ from flask_migrate import Migrate # For database migration
 from flask import request, redirect, jsonify
 import random, string
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 mysql_host = os.getenv("MYSQL_HOST", "localhost")
 
@@ -68,8 +73,12 @@ trace.set_tracer_provider(
 )
 
 # Step 2: Create OTLP HTTP exporter (no 'insecure' argument)
+otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+logger.info(f"Using OTLP endpoint: {otlp_endpoint}")
+
 otlp_exporter = OTLPSpanExporter(
-    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+    # endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 )
 
 # Step 3: Add BatchSpanProcessor
