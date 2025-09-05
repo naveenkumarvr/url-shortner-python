@@ -1,0 +1,33 @@
+grafana:
+  enabled: false
+
+promtail:
+  enabled: true
+
+loki:
+  auth_enabled: false
+  persistence:
+    enabled: false
+  image:
+    tag: 2.9.3
+
+  # Single-node mode
+  replicaCount: 1
+  singleBinary: true
+
+  # Enable querier for Grafana
+  querier:
+    enabled: true
+    replicas: 1
+
+  # Disable other distributed components
+  distributor:
+    enabled: false
+  ingester:
+    enabled: false
+  queryFrontend:
+    enabled: false
+  ruler:
+    enabled: false
+  compactor:
+    enabled: false
