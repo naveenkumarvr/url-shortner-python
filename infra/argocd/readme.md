@@ -111,3 +111,10 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 - For production, consider enabling HTTPS and securing your ingress.
 
 ---
+
+## Adding Helm repo
+```bash
+REPO_URL: http://192.168.0.102:9011/repository/helm-local/
+```
+- Considering you have helm-local as your local helm-hosted repo and is exposed to 9011. 
+- Always use System/Node ip
