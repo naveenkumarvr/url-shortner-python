@@ -1,0 +1,26 @@
+prometheus-node-exporter:
+  hostRootFsMount:
+    enabled: false   # disables the problematic mount
+grafana:
+  replicas: 1
+  adminPassword: "admin"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.localtest.me
+
+prometheus:
+  prometheusSpec:
+    replicas: 1
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - prometheus.localtest.me
+
+# Toleartion to DockerDesktop Volume pressure
+tolerations:
+ - key: "node.kubernetes.io/disk-pressure"
+   operator: "Exists"
+   effect: "NoSchedule"   

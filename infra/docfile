@@ -169,7 +169,7 @@ Token 533e5f0935bbc13e4e2bef6a8e99a71d3cfb7a6b
 
 ######### NEXUS ###########
 
-docker run -d --name nexus -p 9012:8081 -p 9010:9010 -v ./nexus:/nexus-data sonatype/nexus3:latest
+docker run -d --name nexus -p 9011:8081 -p 9010:9010 -v ./nexus:/nexus-data --memory="265m" sonatype/nexus3:latest
 
 
 ## Login Issue fix ###
@@ -307,3 +307,8 @@ helm upgrade --install promtail grafana/promtail \
 #Now Configure Grafana Datasoruce with service name of Loki
 Eg URL: http://loki.logging.svc.cluster.local:3100
 
+
+
+################ d
+DiskPressure of NODE
+kubectl describe node docker-desktop | grep -A5 "Conditions"
