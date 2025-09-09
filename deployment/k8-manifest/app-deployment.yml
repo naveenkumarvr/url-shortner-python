@@ -27,5 +27,7 @@ spec:
             value: redis
           - name: MYSQL_HOST
             value: mysql
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: {{ .Values.app.deploy.otel_endpoint }}
         resources: {}
 status: {}

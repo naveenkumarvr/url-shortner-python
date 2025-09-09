@@ -77,9 +77,8 @@ otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/
 logger.info(f"Using OTLP endpoint: {otlp_endpoint}")
 
 otlp_exporter = OTLPSpanExporter(
-    # endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
-    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
-    insecure=True
+    endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+    # endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 )
 
 # Step 3: Add BatchSpanProcessor

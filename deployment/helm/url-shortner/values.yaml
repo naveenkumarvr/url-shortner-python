@@ -3,9 +3,9 @@ app:
   deploy:
     replicas: 1
     image: localhost:9010/url-shotner
-    tag: 0.0.1-alpha.65
+    tag: 0.1.0-otel-uat.1-103
     containerPort: 5000
-    otel_endpoint: "http://otel-collector.observability.svc.cluster.local:4318"
+    otel_endpoint: "http://otel-collector.observability.svc.cluster.local:4318/v1/traces"
   svc:
     type: ClusterIP
     port: 5000
