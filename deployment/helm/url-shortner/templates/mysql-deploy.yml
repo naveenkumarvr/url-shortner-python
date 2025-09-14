@@ -27,5 +27,12 @@ spec:
         env:
         - name: MYSQL_ROOT_PASSWORD
           value: password
+        volumeMounts:
+          - name: initdb
+            mountPath: /docker-entrypoint-initdb.d
+      volumes:                # <-- fixed from "volume" to "volumes"
+      - name: initdb
+        configMap:
+          name: "{{ include "app.fullname" . }}-mysql-configmap"
 
 status: {}
