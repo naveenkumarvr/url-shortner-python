@@ -1,9 +1,6 @@
 name: CI Pipeline
 
 on:
-  push:
-    branches:
-      - otel-uat
   workflow_dispatch:
   
 
