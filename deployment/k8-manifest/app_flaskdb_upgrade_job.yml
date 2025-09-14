@@ -8,7 +8,7 @@ spec:
       restartPolicy: onFailure
       containers:
       - image: localhost:9010/url-shotner:0.0.1-alpha.65
-        name: url-shortner
+        name: migrate
         ports:
           - containerPort: 5000
         env:
@@ -18,4 +18,8 @@ spec:
             value: mysql
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: {{ .Values.app.deploy.otel_endpoint }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              flask db upgrade
         resources: {}  

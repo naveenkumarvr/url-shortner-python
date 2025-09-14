@@ -17,6 +17,10 @@ spec:
       labels:
         app: url-shortner # This label is added to the pod by deployment to identify it by selector
     spec:
+      initContainers:
+      - name: wait-for-mysql
+        image: busybox:1.36
+        command: ['sh','-c','until nc -z mysql 3306; do echo "waiting for mysql..."; sleep 5;']
       containers:
       - image: localhost:9010/url-shotner:0.0.1-alpha.65
         name: url-shortner
