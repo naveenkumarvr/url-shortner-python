@@ -5,14 +5,12 @@ on:
   
 
 jobs:
-  env:
-    DOTNET_ROOT: /usr/local/share/dotnet
-
   ci-pipeline:
     name: CI Pipline
     runs-on: [self-hosted, macOS, ARM64, nkmac]
+    env:
+      DOTNET_ROOT: /usr/local/share/dotnet
     steps:
-    
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
