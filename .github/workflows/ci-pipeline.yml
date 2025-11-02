@@ -81,26 +81,15 @@ jobs:
         syft scan dir:./app -o cyclonedx-json > sbom-${{ env.SEMVER }}.json
 
         #Get Project ID of D-Track
-        PROJECT_ID=$(curl -s -X GET "http://localhost:9012/api/v1/project?name=${GITHUB_REPOSITORY##*/}" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
+        PROJECT_ID=$(curl -s -X GET "http://localhost:8099/api/v1/project?name=url-shortner" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
         echo "DD_PROJECTID: $PROJECT_ID"
 
         # Upload SBOM Report to DTRACK
-        curl -X POST "http://localhost:9012/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ env.SEMVER }}.json"
+        curl -X POST "http://localhost:8099/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ env.SEMVER }}.json"
         
         # Scan SBOM with Grype
         grype sbom:sbom-${{ env.SEMVER }}.json -o json --fail-on High -v > grype-report-${{ env.SEMVER }}.json
     
-    - name: Upload the report to DTRACK
-      run: |
-        PROJECT_ID=$(curl -s -X GET "http://localhost:8099/api/v1/project?name=url-shortner-python" \
-          -H "X-Api-Key: odt_tvkDWgET_cTJuxbtmkHny4itzdLYNjz7mO5lmmVWz" | jq '.[0].uuid')
-        echo "DTRACK: $PROJECT_ID"
-
-        curl -X POST "http://localhost:8099/api/v1/bom" \
-        -H "X-Api-Key: odt_tvkDWgET_cTJuxbtmkHny4itzdLYNjz7mO5lmmVWz" \
-        -H "Content-Type: multipart/form-data" \
-        -F "project=$PROJECT_ID" \
-        -F "bom=@sbom-sbom-${{ env.SEMVER }}.json"
 
     
     # - name: Create and Push Artifacts to Nexus
