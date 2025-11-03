@@ -107,12 +107,12 @@ jobs:
         security unlock-keychain -p "${{ secrets.MC_PASS }}" ~/Library/Keychains/login.keychain-db
 
         cd app
-        docker build -t localhost:9010/url-shotner:${{ env.SEMVER }} .
+        docker build -t host.docker.internal:9010/url-shotner:${{ env.SEMVER }} .
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.28.0
       with:
-        image-ref: 'localhost:9010/url-shotner:${{ env.SEMVER }}'
+        image-ref: 'host.docker.internal:9010/url-shotner:${{ env.SEMVER }}'
         format: 'json'
         output: 'trivy-results-${{ env.SEMVER }}.json'
     
@@ -136,8 +136,8 @@ jobs:
 
     - name: Push Docker image to Nexus
       run: |
-        docker login localhost:9010 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
-        docker push localhost:9010/url-shotner:${{ env.SEMVER }}
+        docker login host.docker.internal:9010 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
+        docker push host.docker.internal:9010/url-shotner:${{ env.SEMVER }}
     
         
 
