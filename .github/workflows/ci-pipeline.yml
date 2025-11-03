@@ -5,6 +5,7 @@ on:
     branches:
       - otel-uat
   workflow_dispatch:
+
   
 
 jobs:
@@ -140,4 +141,5 @@ jobs:
         docker push host.docker.internal:9010/url-shotner:${{ env.SEMVER }}
     
         
+
 
