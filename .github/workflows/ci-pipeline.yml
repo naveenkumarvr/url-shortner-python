@@ -93,28 +93,28 @@ jobs:
     
 
     
-    # - name: Create and Push Artifacts to Nexus
-    #   run: |
-    #     zip -r ${{ env.SEMVER }}.zip app/
+    - name: Create and Push Artifacts to Nexus
+      run: |
+        zip -r ${{ env.SEMVER }}.zip app/
 
-    #     # Push artifacts to Nexus
-    #     curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
-    #     --upload-file ${{ env.SEMVER }}.zip \
-    #     http://localhost:9011/repository/url-shortner-artifacts/${{ env.SEMVER }}.zip
+        # Push artifacts to Nexus
+        curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
+        --upload-file ${{ env.SEMVER }}.zip \
+        http://localhost:9011/repository/url-shortner-artifacts/${{ env.SEMVER }}.zip
 
-    # - name: Build Docker image
-    #   run : |
-    #     security unlock-keychain -p "${{ secrets.MC_PASS }}" ~/Library/Keychains/login.keychain-db
+    - name: Build Docker image
+      run : |
+        security unlock-keychain -p "${{ secrets.MC_PASS }}" ~/Library/Keychains/login.keychain-db
 
-    #     cd app
-    #     docker build -t localhost:9010/url-shotner:${{ env.SEMVER }} .
+        cd app
+        docker build -t localhost:9010/url-shotner:${{ env.SEMVER }} .
     
-    # - name: Run Trivy vulnerability scanner
-    #   uses: aquasecurity/trivy-action@0.28.0
-    #   with:
-    #     image-ref: 'localhost:9010/url-shotner:${{ env.SEMVER }}'
-    #     format: 'json'
-    #     output: 'trivy-results-${{ env.SEMVER }}.json'
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        image-ref: 'localhost:9010/url-shotner:${{ env.SEMVER }}'
+        format: 'json'
+        output: 'trivy-results-${{ env.SEMVER }}.json'
     
     # - name: Upload to DefectDojo - Grype
     #   run: |
