@@ -32,7 +32,7 @@ pytest-cov==6.2.1
 PyYAML==6.0.2
 redis==6.2.0
 six==1.17.0
-SQLAlchemy==2.0.41
+SQLAlchemy
 tomli==2.2.1
 typing_extensions==4.14.1
 Werkzeug==3.1.3
