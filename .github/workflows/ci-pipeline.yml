@@ -131,7 +131,7 @@ jobs:
           -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
           -F 'file=@trivy-results-${{ env.SEMVER }}.json' \
           -F 'scan_type=Trivy Scan' \
-          -F 'engagement=1' \
+          -F 'engagement=2' \
           -F 'active=true' -F 'verified=true'
 
     - name: Push Docker image to Nexus
