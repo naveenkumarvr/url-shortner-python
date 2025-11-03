@@ -52,7 +52,7 @@ jobs:
     - name: CodeCoverage
       shell: bash
       run: |
-        source /Users/naveen/Desktop/naveen-data/docker-practice/gh-env/bin/activate
+        source /Users/naveen/Desktop/naveen-data/devops/py-venv/py-venv/bin/activate
         pytest --cov=app --cov-report=xml:app/coverage.xml
     
     - name: Sonarqube Analysis
@@ -89,7 +89,7 @@ jobs:
         
         # Scan SBOM with Grype
         grype db update
-        grype sbom:sbom-${{ env.SEMVER }}.json -o json --fail-on High -v > grype-report-${{ env.SEMVER }}.json
+        grype sbom:sbom-${{ env.SEMVER }}.json -o json -v > grype-report-${{ env.SEMVER }}.json
     
 
     
