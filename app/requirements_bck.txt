@@ -52,3 +52,10 @@ urllib3==2.5.0
 Werkzeug==3.1.3
 wrapt==1.17.3
 zipp==3.23.0
+
+
+requests==2.25.0           # CVE-2023-32681 – potential header injection
+urllib3==1.25.11           # CVE-2021-33503 – CRLF injection via CR or LF in URLs
+PyJWT==2.4.0               # CVE-2022-29217 – Algorithm confusion
+Flask==2.0.1               # CVE-2023-30861 – WSGI injection via Host header
+Jinja2==3.0.3              # CVE-2021-41182 – sandbox escape via `getattr`
