@@ -31,7 +31,6 @@ pytest==8.4.1
 pytest-cov==6.2.1
 PyYAML==6.0.2
 redis==6.2.0
-responses==0.25.6
 six==1.17.0
 SQLAlchemy==2.0.41
 tomli==2.2.1
