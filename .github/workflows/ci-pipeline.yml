@@ -56,24 +56,24 @@ jobs:
         source /Users/naveen/Desktop/naveen-data/devops/py-venv/py-venv/bin/activate
         pytest --cov=app --cov-report=xml:app/coverage.xml
     
-    - name: Sonarqube Analysis
-      run: |
-        docker run \
-        --rm \
-        -e SONAR_SCANNER_OPTS="\
-          -Dsonar.projectKey=url-shortner-python \
-          -Dsonar.projectName=url-shortner-python \
-          -Dsonar.projectVersion=1.0 \
-          -Dsonar.sources=/usr/src/ \
-          -Dsonar.host.url=http://host.docker.internal:9000 \
-          -Dsonar.sourceEncoding=UTF-8 \
-          -Dsonar.python.version=3.11 \
-          -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
-          -Dsonar.exclusions=**/migrations/**,k8-manifest/**,vnv-urlshrt/** \
-          -Dsonar.coverage.exclusions=**/migrations/**,**/test_*.py \
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }}" \
-        -v "./app:/usr/src" \
-        sonarsource/sonar-scanner-cli
+    # - name: Sonarqube Analysis
+    #   run: |
+    #     docker run \
+    #     --rm \
+    #     -e SONAR_SCANNER_OPTS="\
+    #       -Dsonar.projectKey=url-shortner-python \
+    #       -Dsonar.projectName=url-shortner-python \
+    #       -Dsonar.projectVersion=1.0 \
+    #       -Dsonar.sources=/usr/src/ \
+    #       -Dsonar.host.url=http://host.docker.internal:9000 \
+    #       -Dsonar.sourceEncoding=UTF-8 \
+    #       -Dsonar.python.version=3.11 \
+    #       -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
+    #       -Dsonar.exclusions=**/migrations/**,k8-manifest/**,vnv-urlshrt/** \
+    #       -Dsonar.coverage.exclusions=**/migrations/**,**/test_*.py \
+    #       -Dsonar.token=${{ secrets.SONAR_TOKEN }}" \
+    #     -v "./app:/usr/src" \
+    #     sonarsource/sonar-scanner-cli
     
     - name: SYFT SBOM Report Generation and Grype vulnerability Scan
       env:
@@ -81,12 +81,12 @@ jobs:
       run: |
         syft scan dir:./app -o cyclonedx-json > sbom-${{ env.SEMVER }}.json
 
-        #Get Project ID of D-Track
-        PROJECT_ID=$(curl -s -X GET "http://localhost:8099/api/v1/project?name=url-shortner" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
-        echo "DD_PROJECTID: $PROJECT_ID"
+        # #Get Project ID of D-Track
+        # PROJECT_ID=$(curl -s -X GET "http://localhost:8099/api/v1/project?name=url-shortner" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" | jq '.[0].uuid')
+        # echo "DD_PROJECTID: $PROJECT_ID"
 
-        # Upload SBOM Report to DTRACK
-        curl -X POST "http://localhost:8099/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ env.SEMVER }}.json"
+        # # Upload SBOM Report to DTRACK
+        # curl -X POST "http://localhost:8099/api/v1/bom" -H "X-Api-Key: ${{ secrets.DTRACK_API_KEY }}" -H "Content-Type: multipart/form-data" -F "project=$PROJECT_ID" -F "bom=@sbom-${{ env.SEMVER }}.json"
         
         # Scan SBOM with Grype
         grype db update
@@ -94,51 +94,51 @@ jobs:
     
 
     
-    - name: Create and Push Artifacts to Nexus
-      run: |
-        zip -r ${{ env.SEMVER }}.zip app/
+    # - name: Create and Push Artifacts to Nexus
+    #   run: |
+    #     zip -r ${{ env.SEMVER }}.zip app/
 
-        # Push artifacts to Nexus
-        curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
-        --upload-file ${{ env.SEMVER }}.zip \
-        http://localhost:9011/repository/url-shortner-artifacts/${{ env.SEMVER }}.zip
+    #     # Push artifacts to Nexus
+    #     curl -u admin:${{ secrets.NEXUS_PASSWORD }} \
+    #     --upload-file ${{ env.SEMVER }}.zip \
+    #     http://localhost:9011/repository/url-shortner-artifacts/${{ env.SEMVER }}.zip
 
-    - name: Build Docker image
-      run : |
-        security unlock-keychain -p "${{ secrets.MC_PASS }}" ~/Library/Keychains/login.keychain-db
+    # - name: Build Docker image
+    #   run : |
+    #     security unlock-keychain -p "${{ secrets.MC_PASS }}" ~/Library/Keychains/login.keychain-db
 
-        cd app
-        docker build -t host.docker.internal:9010/url-shotner:${{ env.SEMVER }} .
+    #     cd app
+    #     docker build -t host.docker.internal:9010/url-shotner:${{ env.SEMVER }} .
     
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@0.28.0
-      with:
-        image-ref: 'host.docker.internal:9010/url-shotner:${{ env.SEMVER }}'
-        format: 'json'
-        output: 'trivy-results-${{ env.SEMVER }}.json'
+    # - name: Run Trivy vulnerability scanner
+    #   uses: aquasecurity/trivy-action@0.28.0
+    #   with:
+    #     image-ref: 'host.docker.internal:9010/url-shotner:${{ env.SEMVER }}'
+    #     format: 'json'
+    #     output: 'trivy-results-${{ env.SEMVER }}.json'
     
     - name: Upload to DefectDojo - Grype
       run: |
-        curl -X POST "http://localhost:8080/api/v2/import-scan/" \
+        curl -X POST "http://107.20.211.226:8080/api/v2/import-scan/" \
           -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
           -F 'file=@grype-report-${{ env.SEMVER }}.json' \
           -F 'scan_type=Anchore Grype' \
           -F 'engagement=1' \
           -F 'active=true' -F 'verified=true'
 
-    - name: Upload to DefectDojo - Trivy
-      run: |
-        curl -X POST "http://localhost:8080/api/v2/import-scan/" \
-          -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
-          -F 'file=@trivy-results-${{ env.SEMVER }}.json' \
-          -F 'scan_type=Trivy Scan' \
-          -F 'engagement=2' \
-          -F 'active=true' -F 'verified=true'
+    # - name: Upload to DefectDojo - Trivy
+    #   run: |
+    #     curl -X POST "http://localhost:8080/api/v2/import-scan/" \
+    #       -H "Authorization: Token ${{ secrets.DETECTDOJO_TOKEN }}" \
+    #       -F 'file=@trivy-results-${{ env.SEMVER }}.json' \
+    #       -F 'scan_type=Trivy Scan' \
+    #       -F 'engagement=2' \
+    #       -F 'active=true' -F 'verified=true'
 
-    - name: Push Docker image to Nexus
-      run: |
-        docker login host.docker.internal:9010 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
-        docker push host.docker.internal:9010/url-shotner:${{ env.SEMVER }}
+    # - name: Push Docker image to Nexus
+    #   run: |
+    #     docker login host.docker.internal:9010 -u admin -p ${{ secrets.NEXUS_PASSWORD }}
+    #     docker push host.docker.internal:9010/url-shotner:${{ env.SEMVER }}
     
         
 
