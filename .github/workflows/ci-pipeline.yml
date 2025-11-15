@@ -135,6 +135,12 @@ jobs:
           -F 'engagement=2' \
           -F 'active=true' -F 'verified=true'
     
+    - name: upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-artifact
+        path: sbom-${{ env.SEMVER }}.json
+    
 
 
     # - name: Upload to DefectDojo - Trivy
